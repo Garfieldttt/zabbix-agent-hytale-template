@@ -1,0 +1,734 @@
+zabbix_export:
+  version: '7.0'
+  template_groups:
+    - uuid: 7df96b18c230490a9a0a9e2307226338
+      name: Templates
+  templates:
+    - uuid: 503b3e79b0e445e5971085606695d852
+      template: Hytale
+      name: Hytale
+      description: |
+        Zabbix template for monitoring a Hytale server on Linux using Zabbix Agent (active checks).
+        Discovers players, bans and whitelist entries by parsing local Hytale JSON files.
+        
+        Author: Thomas Rzen
+        More information: https://github.com/Garfieldttt/zabbix-agent-hytale-template
+      groups:
+        - name: Templates
+      items:
+        - uuid: 60bc7b2aa9534b08b1988d099a3d9094
+          name: player.raw
+          type: ZABBIX_ACTIVE
+          key: 'vfs.dir.get[{$PLAYER_JSON_PATH}Server/universe/players,^.+\.json$,,file,,0]'
+          history: '0'
+          value_type: TEXT
+          trends: '0'
+        - uuid: fe56dd2183084e6db8a66c8aad5b83c2
+          name: bans.raw
+          type: ZABBIX_ACTIVE
+          key: 'vfs.file.contents[{$PLAYER_JSON_PATH}Server/bans.json]'
+          history: '0'
+          value_type: TEXT
+          trends: '0'
+        - uuid: 70d90729b73840cda74b5611fda9d6d5
+          name: whitelist.raw
+          type: ZABBIX_ACTIVE
+          key: 'vfs.file.contents[{$PLAYER_JSON_PATH}Server/whitelist.json]'
+          history: '0'
+          value_type: TEXT
+          trends: '0'
+          preprocessing:
+            - type: JAVASCRIPT
+              parameters:
+                - |
+                  var j = JSON.parse(value);
+                  
+                  var out = [];
+                  if (Array.isArray(j.list)) {
+                    for (var i = 0; i < j.list.length; i++) {
+                      var u = j.list[i];
+                      if (u) out.push({ "uuid": String(u) });
+                    }
+                  }
+                  
+                  // enabled bleibt erhalten
+                  return JSON.stringify({
+                    "enabled": !!j.enabled,
+                    "data": out
+                  });
+      discovery_rules:
+        - uuid: 7b10b5a114314b7094a7d576cf57b4c9
+          name: 'Discover Bans'
+          type: DEPENDENT
+          key: discover.bans
+          delay: '0'
+          item_prototypes:
+            - uuid: 1abf3bd80b8d42d4b51dd2d43b37713b
+              name: 'Hytale player banned by'
+              type: DEPENDENT
+              key: 'player.by["{#UUID}"]'
+              delay: '0'
+              value_type: CHAR
+              trends: '0'
+              preprocessing:
+                - type: JSONPATH
+                  parameters:
+                    - '$[?(@.target=="{#UUID}")].by.first()'
+                  error_handler: DISCARD_VALUE
+              master_item:
+                key: 'vfs.file.contents[{$PLAYER_JSON_PATH}Server/bans.json]'
+              tags:
+                - tag: UUID
+                  value: '{#UUID}'
+            - uuid: f882b76f52684501a7cec800776853c3
+              name: 'Hytale player bann reason'
+              type: DEPENDENT
+              key: 'player.reason["{#UUID}"]'
+              delay: '0'
+              value_type: CHAR
+              trends: '0'
+              preprocessing:
+                - type: JSONPATH
+                  parameters:
+                    - '$[?(@.target=="{#UUID}")].reason.first()'
+                  error_handler: DISCARD_VALUE
+              master_item:
+                key: 'vfs.file.contents[{$PLAYER_JSON_PATH}Server/bans.json]'
+              tags:
+                - tag: UUID
+                  value: '{#UUID}'
+            - uuid: a8fa55a908f24c04a29fd6cf2de05f99
+              name: 'Hytale player banned'
+              type: DEPENDENT
+              key: 'player.target["{#UUID}"]'
+              delay: '0'
+              value_type: CHAR
+              trends: '0'
+              preprocessing:
+                - type: JSONPATH
+                  parameters:
+                    - '$[?(@.target=="{#UUID}")].target.first()'
+                  error_handler: DISCARD_VALUE
+              master_item:
+                key: 'vfs.file.contents[{$PLAYER_JSON_PATH}Server/bans.json]'
+              tags:
+                - tag: UUID
+                  value: '{#UUID}'
+              trigger_prototypes:
+                - uuid: ad925b33b2974ab8a47ed019cfa9f411
+                  expression: 'last(/Hytale/player.target["{#UUID}"])={#UUID}'
+                  name: 'Hytale Player UUID: {#UUID} banned'
+                  priority: AVERAGE
+            - uuid: 085296f4ff814c539b1f2d0ac2ab86c2
+              name: 'Hytale player bann time'
+              type: DEPENDENT
+              key: 'player.timestamp["{#UUID}"]'
+              delay: '0'
+              units: unixtime
+              preprocessing:
+                - type: JSONPATH
+                  parameters:
+                    - '$[?(@.target=="{#UUID}")].timestamp.first()'
+                  error_handler: DISCARD_VALUE
+                - type: JAVASCRIPT
+                  parameters:
+                    - 'return Math.floor(value/1000)'
+              master_item:
+                key: 'vfs.file.contents[{$PLAYER_JSON_PATH}Server/bans.json]'
+              tags:
+                - tag: UUID
+                  value: '{#UUID}'
+            - uuid: 72c8392d19b341beb3f9fe006230c797
+              name: 'Hytale player bann type'
+              type: DEPENDENT
+              key: 'player.type["{#UUID}"]'
+              delay: '0'
+              value_type: CHAR
+              trends: '0'
+              preprocessing:
+                - type: JSONPATH
+                  parameters:
+                    - '$[?(@.target=="{#UUID}")].type.first()'
+                  error_handler: DISCARD_VALUE
+              master_item:
+                key: 'vfs.file.contents[{$PLAYER_JSON_PATH}Server/bans.json]'
+              tags:
+                - tag: UUID
+                  value: '{#UUID}'
+          master_item:
+            key: 'vfs.file.contents[{$PLAYER_JSON_PATH}Server/bans.json]'
+          lld_macro_paths:
+            - lld_macro: '{#UUID}'
+              path: $.target
+          preprocessing:
+            - type: JSONPATH
+              parameters:
+                - '$[*]'
+        - uuid: a5a301ad57b84f0fa9b427a896900c39
+          name: 'Discover Player'
+          type: DEPENDENT
+          key: discover.player
+          delay: '0'
+          item_prototypes:
+            - uuid: 91eec0698bf743619779901a30276812
+              name: 'Hytale player ammo state'
+              type: DEPENDENT
+              key: 'player.ammo["{#PATHNAME}"]'
+              delay: '0'
+              value_type: FLOAT
+              preprocessing:
+                - type: JSONPATH
+                  parameters:
+                    - $.Components.EntityStats.Stats.Ammo.Value
+              master_item:
+                key: 'vfs.file.contents[{#PATHNAME},UTF-8]'
+              tags:
+                - tag: UUID
+                  value: '{#UUID}'
+            - uuid: 641289d25bb0419381acdab9cd065a72
+              name: 'Hytale player death marker'
+              type: DEPENDENT
+              key: 'player.deathmarker["{#PATHNAME}"]'
+              delay: '0'
+              value_type: TEXT
+              trends: '0'
+              preprocessing:
+                - type: JSONPATH
+                  parameters:
+                    - $.Components.Player.PlayerData.PerWorldData
+                - type: JAVASCRIPT
+                  parameters:
+                    - |
+                      var pwd, world, w, out, i, dp, t, id;
+                      
+                      try {
+                        pwd = JSON.parse(value); // value ist PerWorldData-Objekt
+                      } catch (e) {
+                        return null;
+                      }
+                      
+                      if (!pwd) return "";
+                      
+                      out = [];
+                      
+                      for (world in pwd) {
+                        if (!pwd.hasOwnProperty(world)) continue;
+                      
+                        w = pwd[world];
+                      
+                        if (w.DeathPositions && w.DeathPositions.length) {
+                          out.push("World: " + world);
+                      
+                          for (i = 0; i < w.DeathPositions.length; i++) {
+                            dp = w.DeathPositions[i];
+                      
+                            id = dp.MarkerId ? dp.MarkerId : ("Death #" + (i + 1));
+                            out.push(id);
+                      
+                            t = dp.Transform;
+                            if (t) {
+                              out.push("  X: " + t.X);
+                              out.push("  Y: " + t.Y);
+                              out.push("  Z: " + t.Z);
+                            } else {
+                              out.push("  (no Transform)");
+                            }
+                      
+                            // optional: Day anzeigen
+                            if (typeof dp.Day !== "undefined") {
+                              out.push("  Day: " + dp.Day);
+                            }
+                      
+                            out.push("");
+                          }
+                      
+                          out.push("");
+                        }
+                      }
+                      
+                      return out.join("\n");
+              master_item:
+                key: 'vfs.file.contents[{#PATHNAME},UTF-8]'
+              tags:
+                - tag: UUID
+                  value: '{#UUID}'
+            - uuid: aebed53ee99a42b89a4bfd1617c33682
+              name: 'Hytale player discovered zones'
+              type: DEPENDENT
+              key: 'player.discoveredzones["{#PATHNAME}"]'
+              delay: '0'
+              value_type: TEXT
+              trends: '0'
+              preprocessing:
+                - type: JSONPATH
+                  parameters:
+                    - $.Components.Player.PlayerData.DiscoveredZones
+                - type: LTRIM
+                  parameters:
+                    - '["'
+                - type: RTRIM
+                  parameters:
+                    - '"]'
+                - type: STR_REPLACE
+                  parameters:
+                    - '","'
+                    - ', '
+              master_item:
+                key: 'vfs.file.contents[{#PATHNAME},UTF-8]'
+              tags:
+                - tag: UUID
+                  value: '{#UUID}'
+            - uuid: d7e62bae56ec4392bc01a97621ebe524
+              name: 'Hytale player gamemode'
+              type: DEPENDENT
+              key: 'player.gamemode["{#PATHNAME}"]'
+              delay: '0'
+              trends: '0'
+              valuemap:
+                name: GameMode
+              preprocessing:
+                - type: JSONPATH
+                  parameters:
+                    - $.Components.Player.GameMode
+                - type: STR_REPLACE
+                  parameters:
+                    - Adventure
+                    - '1'
+                - type: STR_REPLACE
+                  parameters:
+                    - Exploration
+                    - '2'
+                - type: STR_REPLACE
+                  parameters:
+                    - Creative
+                    - '3'
+              master_item:
+                key: 'vfs.file.contents[{#PATHNAME},UTF-8]'
+              tags:
+                - tag: UUID
+                  value: '{#UUID}'
+              trigger_prototypes:
+                - uuid: 2e4be7954dbb47b38f718abee1a13ffd
+                  expression: 'last(/Hytale/player.gamemode["{#PATHNAME}"])=3'
+                  name: 'Player {#UUID} is in Creative mode'
+                  priority: WARNING
+            - uuid: dd21b2d5514f4981bde3a16444b4366a
+              name: 'Hytale player gliding state'
+              type: DEPENDENT
+              key: 'player.gliding["{#PATHNAME}"]'
+              delay: '0'
+              value_type: FLOAT
+              preprocessing:
+                - type: JSONPATH
+                  parameters:
+                    - $.Components.EntityStats.Stats.GlidingActive.Value
+              master_item:
+                key: 'vfs.file.contents[{#PATHNAME},UTF-8]'
+              tags:
+                - tag: UUID
+                  value: '{#UUID}'
+            - uuid: e45feb3870e34b428ea29599c6e1aac7
+              name: 'Hytale player health state (incl. armor)'
+              type: DEPENDENT
+              key: 'player.healthy["{#PATHNAME}"]'
+              delay: '0'
+              value_type: FLOAT
+              preprocessing:
+                - type: JSONPATH
+                  parameters:
+                    - $.Components.EntityStats.Stats.Health.Value
+              master_item:
+                key: 'vfs.file.contents[{#PATHNAME},UTF-8]'
+              tags:
+                - tag: UUID
+                  value: '{#UUID}'
+            - uuid: a04e6a38bc9f4b93bc88c301fef8792a
+              name: 'Hytale player immunity state'
+              type: DEPENDENT
+              key: 'player.immunity["{#PATHNAME}"]'
+              delay: '0'
+              value_type: FLOAT
+              preprocessing:
+                - type: JSONPATH
+                  parameters:
+                    - $.Components.EntityStats.Stats.Immunity.Value
+              master_item:
+                key: 'vfs.file.contents[{#PATHNAME},UTF-8]'
+              tags:
+                - tag: UUID
+                  value: '{#UUID}'
+            - uuid: d620289705354e9db1f8761ceca8c0eb
+              name: 'Hytale player inventory list'
+              type: DEPENDENT
+              key: 'player.items["{#PATHNAME}"]'
+              delay: '0'
+              value_type: TEXT
+              trends: '0'
+              preprocessing:
+                - type: JSONPATH
+                  parameters:
+                    - $.Components.Player.Inventory
+                - type: JAVASCRIPT
+                  parameters:
+                    - |
+                      // value = Inventory-Objekt als JSON-String (kommt aus dem vorherigen JSONPath-Step)
+                      var inv = JSON.parse(value);
+                      
+                      function collect(sectionName, sectionObj, out) {
+                        if (!sectionObj || !sectionObj.Items) return;
+                      
+                        var items = sectionObj.Items;
+                        for (var slot in items) {
+                          if (!items.hasOwnProperty(slot)) continue;
+                      
+                          var it = items[slot];
+                          if (!it || !it.Id) continue;
+                      
+                          var qty = (it.Quantity !== undefined && it.Quantity !== null) ? it.Quantity : 0;
+                          var dur = (it.Durability !== undefined && it.Durability !== null) ? it.Durability : 0;
+                          var maxdur = (it.MaxDurability !== undefined && it.MaxDurability !== null) ? it.MaxDurability : 0;
+                      
+                          // Lesbares Format mit Labels
+                          out.push(
+                            sectionName + ":" + slot +
+                            " Id=" + it.Id +
+                            " Quantity=" + qty +
+                            " Durability=" + dur + "/" + maxdur
+                          );
+                        }
+                      }
+                      
+                      var out = [];
+                      collect("Storage", inv.Storage, out);
+                      collect("HotBar", inv.HotBar, out);
+                      collect("Tool", inv.Tool, out);
+                      collect("Armor", inv.Armor, out);
+                      collect("Utility", inv.Utility, out);
+                      
+                      // stabile Ausgabe
+                      out.sort();
+                      
+                      return out.join("\n");
+              master_item:
+                key: 'vfs.file.contents[{#PATHNAME},UTF-8]'
+              tags:
+                - tag: UUID
+                  value: '{#UUID}'
+            - uuid: ce37ba7922bb49668f6b2aff8c428ff4
+              name: 'Hytale player magic charges state'
+              type: DEPENDENT
+              key: 'player.magiccharges["{#PATHNAME}"]'
+              delay: '0'
+              value_type: FLOAT
+              preprocessing:
+                - type: JSONPATH
+                  parameters:
+                    - $.Components.EntityStats.Stats.MagicCharges.Value
+              master_item:
+                key: 'vfs.file.contents[{#PATHNAME},UTF-8]'
+              tags:
+                - tag: UUID
+                  value: '{#UUID}'
+            - uuid: 8806904ecf19410f8bdeee0bf6c9f95f
+              name: 'Hytale player name'
+              type: DEPENDENT
+              key: 'player.name["{#PATHNAME}"]'
+              delay: '0'
+              value_type: CHAR
+              trends: '0'
+              preprocessing:
+                - type: JSONPATH
+                  parameters:
+                    - $.Components.Nameplate.Text
+              master_item:
+                key: 'vfs.file.contents[{#PATHNAME},UTF-8]'
+              tags:
+                - tag: UUID
+                  value: '{#UUID}'
+            - uuid: 2a53da4752044d438e6245827de596ee
+              name: 'Hytale player oxygen state'
+              type: DEPENDENT
+              key: 'player.oxygen["{#PATHNAME}"]'
+              delay: '0'
+              value_type: FLOAT
+              preprocessing:
+                - type: JSONPATH
+                  parameters:
+                    - $.Components.EntityStats.Stats.Oxygen.Value
+              master_item:
+                key: 'vfs.file.contents[{#PATHNAME},UTF-8]'
+              tags:
+                - tag: UUID
+                  value: '{#UUID}'
+            - uuid: cd5abcaf6614494c9a5f3f52c38d6077
+              name: 'Hytale player position'
+              type: DEPENDENT
+              key: 'player.position["{#PATHNAME}"]'
+              delay: '0'
+              value_type: CHAR
+              trends: '0'
+              preprocessing:
+                - type: JSONPATH
+                  parameters:
+                    - $.Components.Transform.Position
+                - type: JAVASCRIPT
+                  parameters:
+                    - |
+                      var p;
+                      
+                      try {
+                        p = JSON.parse(value);
+                      } catch (e) {
+                        return null;
+                      }
+                      
+                      if (p == null || p.X == null || p.Y == null || p.Z == null) {
+                        return null;
+                      }
+                      
+                      return "X: " + p.X + ", Y: " + p.Y + ", Z: " + p.Z;
+              master_item:
+                key: 'vfs.file.contents[{#PATHNAME},UTF-8]'
+              tags:
+                - tag: UUID
+                  value: '{#UUID}'
+            - uuid: 40de8f281f5f45569b3b7d1539878f87
+              name: 'Hytale player remaining duration'
+              type: DEPENDENT
+              key: 'player.remaining.duration["{#PATHNAME}"]'
+              delay: '0'
+              value_type: FLOAT
+              trends: '0'
+              preprocessing:
+                - type: JSONPATH
+                  parameters:
+                    - '$.Components.EffectController.ActiveEntityEffects[0].RemainingDuration'
+                  error_handler: DISCARD_VALUE
+              master_item:
+                key: 'vfs.file.contents[{#PATHNAME},UTF-8]'
+              tags:
+                - tag: UUID
+                  value: '{#UUID}'
+            - uuid: bcb31fa6c71444948b6d6ce7786c8fc4
+              name: 'Hytale player respawn points'
+              type: DEPENDENT
+              key: 'player.respawnpoints["{#PATHNAME}"]'
+              delay: '0'
+              value_type: TEXT
+              trends: '0'
+              preprocessing:
+                - type: JSONPATH
+                  parameters:
+                    - $.Components.Player.PlayerData.PerWorldData
+                - type: JAVASCRIPT
+                  parameters:
+                    - |
+                      var pwd, world, w, out, i, rp, bp, rsp, name;
+                      
+                      try {
+                        pwd = JSON.parse(value);   // value ist das PerWorldData-Objekt
+                      } catch (e) {
+                        return null;
+                      }
+                      
+                      if (!pwd) return "";
+                      
+                      out = [];
+                      
+                      for (world in pwd) {
+                        if (!pwd.hasOwnProperty(world)) continue;
+                      
+                        w = pwd[world];
+                        out.push("World: " + world);
+                      
+                        if (w.RespawnPoints && w.RespawnPoints.length) {
+                          for (i = 0; i < w.RespawnPoints.length; i++) {
+                            rp = w.RespawnPoints[i];
+                      
+                            name = rp.Name ? rp.Name : "Respawn point";
+                            out.push(name);
+                      
+                            bp = rp.BlockPosition;
+                            if (bp) {
+                              out.push("  Block X: " + bp.X);
+                              out.push("  Block Y: " + bp.Y);
+                              out.push("  Block Z: " + bp.Z);
+                            }
+                      
+                            rsp = rp.RespawnPosition;
+                            if (rsp) {
+                              out.push("  Respawn X: " + rsp.X);
+                              out.push("  Respawn Y: " + rsp.Y);
+                              out.push("  Respawn Z: " + rsp.Z);
+                            }
+                      
+                            out.push(""); // Leerzeile zwischen Punkten
+                          }
+                        } else {
+                          out.push("(no respawn points)");
+                          out.push("");
+                        }
+                      }
+                      
+                      return out.join("\n");
+              master_item:
+                key: 'vfs.file.contents[{#PATHNAME},UTF-8]'
+              tags:
+                - tag: UUID
+                  value: '{#UUID}'
+            - uuid: 69297a094cd043aa9f86adacd30c4178
+              name: 'Hytale signature charges state'
+              type: DEPENDENT
+              key: 'player.signaturecharges["{#PATHNAME}"]'
+              delay: '0'
+              value_type: FLOAT
+              preprocessing:
+                - type: JSONPATH
+                  parameters:
+                    - $.Components.EntityStats.Stats.SignatureCharges.Value
+              master_item:
+                key: 'vfs.file.contents[{#PATHNAME},UTF-8]'
+              tags:
+                - tag: UUID
+                  value: '{#UUID}'
+            - uuid: fbc49e7ad0274e4c97bc18f714d1042d
+              name: 'Hytale player signature energy state'
+              type: DEPENDENT
+              key: 'player.signatureenergy["{#PATHNAME}"]'
+              delay: '0'
+              value_type: FLOAT
+              preprocessing:
+                - type: JSONPATH
+                  parameters:
+                    - $.Components.EntityStats.Stats.SignatureEnergy.Value
+              master_item:
+                key: 'vfs.file.contents[{#PATHNAME},UTF-8]'
+              tags:
+                - tag: UUID
+                  value: '{#UUID}'
+            - uuid: fbfeef9c24fb4e92b14a213be3d74242
+              name: 'Hytale player stamina regen delay state'
+              type: DEPENDENT
+              key: 'player.staminaregendelay["{#PATHNAME}"]'
+              delay: '0'
+              value_type: FLOAT
+              preprocessing:
+                - type: JSONPATH
+                  parameters:
+                    - $.Components.EntityStats.Stats.StaminaRegenDelay.Value
+              master_item:
+                key: 'vfs.file.contents[{#PATHNAME},UTF-8]'
+              tags:
+                - tag: UUID
+                  value: '{#UUID}'
+            - uuid: cfceba298d18478fab33d04fc0484fa3
+              name: 'Hytale player stamina state'
+              type: DEPENDENT
+              key: 'player.stamina["{#PATHNAME}"]'
+              delay: '0'
+              value_type: FLOAT
+              preprocessing:
+                - type: JSONPATH
+                  parameters:
+                    - $.Components.EntityStats.Stats.Stamina.Value
+              master_item:
+                key: 'vfs.file.contents[{#PATHNAME},UTF-8]'
+              tags:
+                - tag: UUID
+                  value: '{#UUID}'
+            - uuid: cc36990924574998b7ce32393a2562a2
+              name: 'Hytale player world'
+              type: DEPENDENT
+              key: 'player.world["{#PATHNAME}"]'
+              delay: '0'
+              value_type: CHAR
+              trends: '0'
+              preprocessing:
+                - type: JSONPATH
+                  parameters:
+                    - $.Components.Player.PlayerData.World
+              master_item:
+                key: 'vfs.file.contents[{#PATHNAME},UTF-8]'
+              tags:
+                - tag: UUID
+                  value: '{#UUID}'
+            - uuid: 5a7e4d21ca864a55a575b1ae2b7c3c6c
+              name: hytale.player.raw
+              type: ZABBIX_ACTIVE
+              key: 'vfs.file.contents[{#PATHNAME},UTF-8]'
+              value_type: TEXT
+              trends: '0'
+          master_item:
+            key: 'vfs.dir.get[{$PLAYER_JSON_PATH}Server/universe/players,^.+\.json$,,file,,0]'
+          lld_macro_paths:
+            - lld_macro: '{#PATHNAME}'
+              path: $.pathname
+            - lld_macro: '{#UUID}'
+              path: $.player_id
+          preprocessing:
+            - type: JAVASCRIPT
+              parameters:
+                - |
+                  var arr = JSON.parse(value);
+                  
+                  for (var i = 0; i < arr.length; i++) {
+                    if (arr[i].basename) {
+                      // NICHT basename überschreiben!
+                      arr[i].player_id = arr[i].basename.replace(/\.json$/, '');
+                    }
+                  }
+                  
+                  return JSON.stringify(arr);
+            - type: JSONPATH
+              parameters:
+                - '$[*]'
+        - uuid: 1b6c305f795f4b81b4f567586f41836b
+          name: 'Discover Whitelist'
+          type: DEPENDENT
+          key: discover.whitelist
+          delay: '0'
+          item_prototypes:
+            - uuid: 45a791336c484e629259c22a0a059171
+              name: 'Hytale player whitelisted'
+              type: DEPENDENT
+              key: 'player.whitelist["{#UUID}"]'
+              delay: '0'
+              value_type: CHAR
+              trends: '0'
+              preprocessing:
+                - type: JSONPATH
+                  parameters:
+                    - '$.data[?(@.uuid=="{#UUID}")].uuid.first()'
+                  error_handler: DISCARD_VALUE
+              master_item:
+                key: 'vfs.file.contents[{$PLAYER_JSON_PATH}Server/whitelist.json]'
+              tags:
+                - tag: UUID
+                  value: '{#UUID}'
+              trigger_prototypes:
+                - uuid: 6f17f27153944e0e92c76df099a9112a
+                  expression: 'last(/Hytale/player.whitelist["{#UUID}"])={#UUID}'
+                  name: 'Hytale Player UUID: {#UUID} whitelisted'
+                  priority: WARNING
+          master_item:
+            key: 'vfs.file.contents[{$PLAYER_JSON_PATH}Server/whitelist.json]'
+          lld_macro_paths:
+            - lld_macro: '{#UUID}'
+              path: $.uuid
+          preprocessing:
+            - type: JSONPATH
+              parameters:
+                - '$.data[*]'
+      macros:
+        - macro: '{$PLAYER_JSON_PATH}'
+          value: /home/hytale/
+      valuemaps:
+        - uuid: 93ba4fa07370489985f62ddccfdc8c5b
+          name: GameMode
+          mappings:
+            - value: '1'
+              newvalue: Adventure
+            - value: '2'
+              newvalue: Exploration
+            - value: '3'
+              newvalue: Creative
