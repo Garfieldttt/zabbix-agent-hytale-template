@@ -190,5 +190,10 @@ setfacl -m u:zabbix:r /home/hytale/Server/bans.json
 setfacl -m u:zabbix:r /home/hytale/Server/whitelist.json
 setfacl -m u:zabbix:r /home/hytale/Server/config.json
 ```
+<img width="1536" height="1024" alt="image" src="https://github.com/user-attachments/assets/c203cd2d-ef76-4277-9d84-c024d030b65f" />
+
+<img width="2547" height="1312" alt="image" src="https://github.com/user-attachments/assets/c0b6b046-7dc8-4ff8-a28e-3b264301bba9" />
+<img width="2547" height="1312" alt="image" src="https://github.com/user-attachments/assets/0679c784-9417-4091-8dd6-d62b68f0c1d4" />
+
 
 ---
