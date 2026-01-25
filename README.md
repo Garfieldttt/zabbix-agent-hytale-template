@@ -183,11 +183,12 @@ setfacl -R -m u:zabbix:rx /home/hytale/Server/universe/players
 setfacl -R -d -m u:zabbix:rx /home/hytale/Server/universe/players
 ```
 
-### Ban + whitelist files
+### Ban + whitelist + server files
 
 ```bash
 setfacl -m u:zabbix:r /home/hytale/Server/bans.json
 setfacl -m u:zabbix:r /home/hytale/Server/whitelist.json
+setfacl -m u:zabbix:r /home/hytale/Server/config.json
 ```
 
 ---
