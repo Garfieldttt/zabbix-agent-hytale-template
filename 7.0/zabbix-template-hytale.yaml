@@ -16,6 +16,69 @@ zabbix_export:
       groups:
         - name: Templates
       items:
+        - uuid: 09c14c7d41d4461c9cb197291627cb5c
+          name: 'Sever max players'
+          type: DEPENDENT
+          key: server.maxplayers
+          delay: '0'
+          value_type: CHAR
+          trends: '0'
+          preprocessing:
+            - type: JSONPATH
+              parameters:
+                - $.MaxPlayers
+          master_item:
+            key: 'vfs.file.contents[{$PLAYER_JSON_PATH}Server/config.json]'
+          tags:
+            - tag: Hytale
+              value: Server
+        - uuid: 5aceae7b46ee40a8ae1234af36915e27
+          name: 'Sever max view radius'
+          type: DEPENDENT
+          key: server.maxviewradius
+          delay: '0'
+          trends: '0'
+          preprocessing:
+            - type: JSONPATH
+              parameters:
+                - $.MaxViewRadius
+          master_item:
+            key: 'vfs.file.contents[{$PLAYER_JSON_PATH}Server/config.json]'
+          tags:
+            - tag: Hytale
+              value: Server
+        - uuid: 9cfc5fed0801459f9b60bd83de7d0eab
+          name: 'Sever MOTD'
+          type: DEPENDENT
+          key: server.motd
+          delay: '0'
+          value_type: CHAR
+          trends: '0'
+          preprocessing:
+            - type: JSONPATH
+              parameters:
+                - $.MOTD
+          master_item:
+            key: 'vfs.file.contents[{$PLAYER_JSON_PATH}Server/config.json]'
+          tags:
+            - tag: Hytale
+              value: Server
+        - uuid: 75bc74fa6ac647078263699a62ac6e33
+          name: 'Sever name'
+          type: DEPENDENT
+          key: server.name
+          delay: '0'
+          value_type: CHAR
+          trends: '0'
+          preprocessing:
+            - type: JSONPATH
+              parameters:
+                - $.ServerName
+          master_item:
+            key: 'vfs.file.contents[{$PLAYER_JSON_PATH}Server/config.json]'
+          tags:
+            - tag: Hytale
+              value: Server
         - uuid: 60bc7b2aa9534b08b1988d099a3d9094
           name: player.raw
           type: ZABBIX_ACTIVE
@@ -28,6 +91,12 @@ zabbix_export:
           type: ZABBIX_ACTIVE
           key: 'vfs.file.contents[{$PLAYER_JSON_PATH}Server/bans.json]'
           history: '0'
+          value_type: TEXT
+          trends: '0'
+        - uuid: 99b3bdce707a4d0d82bb10275c6532ef
+          name: server.raw
+          type: ZABBIX_ACTIVE
+          key: 'vfs.file.contents[{$PLAYER_JSON_PATH}Server/config.json]'
           value_type: TEXT
           trends: '0'
         - uuid: 70d90729b73840cda74b5611fda9d6d5
@@ -64,7 +133,7 @@ zabbix_export:
           delay: '0'
           item_prototypes:
             - uuid: 1abf3bd80b8d42d4b51dd2d43b37713b
-              name: 'Hytale player banned by'
+              name: 'Hytale player UUID:{#UUID} banned by'
               type: DEPENDENT
               key: 'player.by["{#UUID}"]'
               delay: '0'
@@ -78,10 +147,10 @@ zabbix_export:
               master_item:
                 key: 'vfs.file.contents[{$PLAYER_JSON_PATH}Server/bans.json]'
               tags:
-                - tag: UUID
+                - tag: Hytale
                   value: '{#UUID}'
             - uuid: f882b76f52684501a7cec800776853c3
-              name: 'Hytale player bann reason'
+              name: 'Hytale player UUID:{#UUID} bann reason'
               type: DEPENDENT
               key: 'player.reason["{#UUID}"]'
               delay: '0'
@@ -95,10 +164,10 @@ zabbix_export:
               master_item:
                 key: 'vfs.file.contents[{$PLAYER_JSON_PATH}Server/bans.json]'
               tags:
-                - tag: UUID
+                - tag: Hytale
                   value: '{#UUID}'
             - uuid: a8fa55a908f24c04a29fd6cf2de05f99
-              name: 'Hytale player banned'
+              name: 'Hytale player UUID:{#UUID} banned'
               type: DEPENDENT
               key: 'player.target["{#UUID}"]'
               delay: '0'
@@ -108,11 +177,12 @@ zabbix_export:
                 - type: JSONPATH
                   parameters:
                     - '$[?(@.target=="{#UUID}")].target.first()'
-                  error_handler: DISCARD_VALUE
+                  error_handler: CUSTOM_VALUE
+                  error_handler_params: 'not banned'
               master_item:
                 key: 'vfs.file.contents[{$PLAYER_JSON_PATH}Server/bans.json]'
               tags:
-                - tag: UUID
+                - tag: Hytale
                   value: '{#UUID}'
               trigger_prototypes:
                 - uuid: ad925b33b2974ab8a47ed019cfa9f411
@@ -120,7 +190,7 @@ zabbix_export:
                   name: 'Hytale Player UUID: {#UUID} banned'
                   priority: AVERAGE
             - uuid: 085296f4ff814c539b1f2d0ac2ab86c2
-              name: 'Hytale player bann time'
+              name: 'Hytale player UUID:{#UUID} bann time'
               type: DEPENDENT
               key: 'player.timestamp["{#UUID}"]'
               delay: '0'
@@ -136,10 +206,10 @@ zabbix_export:
               master_item:
                 key: 'vfs.file.contents[{$PLAYER_JSON_PATH}Server/bans.json]'
               tags:
-                - tag: UUID
+                - tag: Hytale
                   value: '{#UUID}'
             - uuid: 72c8392d19b341beb3f9fe006230c797
-              name: 'Hytale player bann type'
+              name: 'Hytale player UUID:{#UUID} bann type'
               type: DEPENDENT
               key: 'player.type["{#UUID}"]'
               delay: '0'
@@ -153,7 +223,7 @@ zabbix_export:
               master_item:
                 key: 'vfs.file.contents[{$PLAYER_JSON_PATH}Server/bans.json]'
               tags:
-                - tag: UUID
+                - tag: Hytale
                   value: '{#UUID}'
           master_item:
             key: 'vfs.file.contents[{$PLAYER_JSON_PATH}Server/bans.json]'
@@ -171,7 +241,7 @@ zabbix_export:
           delay: '0'
           item_prototypes:
             - uuid: 91eec0698bf743619779901a30276812
-              name: 'Hytale player ammo state'
+              name: 'Hytale player UUID:{#UUID} ammo state'
               type: DEPENDENT
               key: 'player.ammo["{#PATHNAME}"]'
               delay: '0'
@@ -183,10 +253,10 @@ zabbix_export:
               master_item:
                 key: 'vfs.file.contents[{#PATHNAME},UTF-8]'
               tags:
-                - tag: UUID
+                - tag: Hytale
                   value: '{#UUID}'
             - uuid: 641289d25bb0419381acdab9cd065a72
-              name: 'Hytale player death marker'
+              name: 'Hytale player UUID:{#UUID} death marker'
               type: DEPENDENT
               key: 'player.deathmarker["{#PATHNAME}"]'
               delay: '0'
@@ -250,10 +320,10 @@ zabbix_export:
               master_item:
                 key: 'vfs.file.contents[{#PATHNAME},UTF-8]'
               tags:
-                - tag: UUID
+                - tag: Hytale
                   value: '{#UUID}'
             - uuid: aebed53ee99a42b89a4bfd1617c33682
-              name: 'Hytale player discovered zones'
+              name: 'Hytale player UUID:{#UUID} discovered zones'
               type: DEPENDENT
               key: 'player.discoveredzones["{#PATHNAME}"]'
               delay: '0'
@@ -276,10 +346,10 @@ zabbix_export:
               master_item:
                 key: 'vfs.file.contents[{#PATHNAME},UTF-8]'
               tags:
-                - tag: UUID
+                - tag: Hytale
                   value: '{#UUID}'
             - uuid: d7e62bae56ec4392bc01a97621ebe524
-              name: 'Hytale player gamemode'
+              name: 'Hytale player UUID:{#UUID} gamemode'
               type: DEPENDENT
               key: 'player.gamemode["{#PATHNAME}"]'
               delay: '0'
@@ -305,7 +375,7 @@ zabbix_export:
               master_item:
                 key: 'vfs.file.contents[{#PATHNAME},UTF-8]'
               tags:
-                - tag: UUID
+                - tag: Hytale
                   value: '{#UUID}'
               trigger_prototypes:
                 - uuid: 2e4be7954dbb47b38f718abee1a13ffd
@@ -313,7 +383,7 @@ zabbix_export:
                   name: 'Player {#UUID} is in Creative mode'
                   priority: WARNING
             - uuid: dd21b2d5514f4981bde3a16444b4366a
-              name: 'Hytale player gliding state'
+              name: 'Hytale player UUID:{#UUID} gliding state'
               type: DEPENDENT
               key: 'player.gliding["{#PATHNAME}"]'
               delay: '0'
@@ -325,10 +395,10 @@ zabbix_export:
               master_item:
                 key: 'vfs.file.contents[{#PATHNAME},UTF-8]'
               tags:
-                - tag: UUID
+                - tag: Hytale
                   value: '{#UUID}'
             - uuid: e45feb3870e34b428ea29599c6e1aac7
-              name: 'Hytale player health state (incl. armor)'
+              name: 'Hytale player UUID:{#UUID} health state (incl. armor)'
               type: DEPENDENT
               key: 'player.healthy["{#PATHNAME}"]'
               delay: '0'
@@ -340,10 +410,10 @@ zabbix_export:
               master_item:
                 key: 'vfs.file.contents[{#PATHNAME},UTF-8]'
               tags:
-                - tag: UUID
+                - tag: Hytale
                   value: '{#UUID}'
             - uuid: a04e6a38bc9f4b93bc88c301fef8792a
-              name: 'Hytale player immunity state'
+              name: 'Hytale player UUID:{#UUID} immunity state'
               type: DEPENDENT
               key: 'player.immunity["{#PATHNAME}"]'
               delay: '0'
@@ -355,10 +425,10 @@ zabbix_export:
               master_item:
                 key: 'vfs.file.contents[{#PATHNAME},UTF-8]'
               tags:
-                - tag: UUID
+                - tag: Hytale
                   value: '{#UUID}'
             - uuid: d620289705354e9db1f8761ceca8c0eb
-              name: 'Hytale player inventory list'
+              name: 'Hytale player UUID:{#UUID} inventory list'
               type: DEPENDENT
               key: 'player.items["{#PATHNAME}"]'
               delay: '0'
@@ -412,10 +482,10 @@ zabbix_export:
               master_item:
                 key: 'vfs.file.contents[{#PATHNAME},UTF-8]'
               tags:
-                - tag: UUID
+                - tag: Hytale
                   value: '{#UUID}'
             - uuid: ce37ba7922bb49668f6b2aff8c428ff4
-              name: 'Hytale player magic charges state'
+              name: 'Hytale player UUID:{#UUID} magic charges state'
               type: DEPENDENT
               key: 'player.magiccharges["{#PATHNAME}"]'
               delay: '0'
@@ -427,10 +497,10 @@ zabbix_export:
               master_item:
                 key: 'vfs.file.contents[{#PATHNAME},UTF-8]'
               tags:
-                - tag: UUID
+                - tag: Hytale
                   value: '{#UUID}'
             - uuid: 8806904ecf19410f8bdeee0bf6c9f95f
-              name: 'Hytale player name'
+              name: 'Hytale player UUID:{#UUID} name'
               type: DEPENDENT
               key: 'player.name["{#PATHNAME}"]'
               delay: '0'
@@ -443,10 +513,10 @@ zabbix_export:
               master_item:
                 key: 'vfs.file.contents[{#PATHNAME},UTF-8]'
               tags:
-                - tag: UUID
+                - tag: Hytale
                   value: '{#UUID}'
             - uuid: 2a53da4752044d438e6245827de596ee
-              name: 'Hytale player oxygen state'
+              name: 'Hytale player UUID:{#UUID} oxygen state'
               type: DEPENDENT
               key: 'player.oxygen["{#PATHNAME}"]'
               delay: '0'
@@ -458,10 +528,10 @@ zabbix_export:
               master_item:
                 key: 'vfs.file.contents[{#PATHNAME},UTF-8]'
               tags:
-                - tag: UUID
+                - tag: Hytale
                   value: '{#UUID}'
             - uuid: cd5abcaf6614494c9a5f3f52c38d6077
-              name: 'Hytale player position'
+              name: 'Hytale player UUID:{#UUID} position'
               type: DEPENDENT
               key: 'player.position["{#PATHNAME}"]'
               delay: '0'
@@ -490,10 +560,10 @@ zabbix_export:
               master_item:
                 key: 'vfs.file.contents[{#PATHNAME},UTF-8]'
               tags:
-                - tag: UUID
+                - tag: Hytale
                   value: '{#UUID}'
             - uuid: 40de8f281f5f45569b3b7d1539878f87
-              name: 'Hytale player remaining duration'
+              name: 'Hytale player UUID:{#UUID} remaining duration'
               type: DEPENDENT
               key: 'player.remaining.duration["{#PATHNAME}"]'
               delay: '0'
@@ -507,10 +577,10 @@ zabbix_export:
               master_item:
                 key: 'vfs.file.contents[{#PATHNAME},UTF-8]'
               tags:
-                - tag: UUID
+                - tag: Hytale
                   value: '{#UUID}'
             - uuid: bcb31fa6c71444948b6d6ce7786c8fc4
-              name: 'Hytale player respawn points'
+              name: 'Hytale player UUID:{#UUID} respawn points'
               type: DEPENDENT
               key: 'player.respawnpoints["{#PATHNAME}"]'
               delay: '0'
@@ -574,7 +644,7 @@ zabbix_export:
               master_item:
                 key: 'vfs.file.contents[{#PATHNAME},UTF-8]'
               tags:
-                - tag: UUID
+                - tag: Hytale
                   value: '{#UUID}'
             - uuid: 69297a094cd043aa9f86adacd30c4178
               name: 'Hytale signature charges state'
@@ -589,10 +659,10 @@ zabbix_export:
               master_item:
                 key: 'vfs.file.contents[{#PATHNAME},UTF-8]'
               tags:
-                - tag: UUID
+                - tag: Hytale
                   value: '{#UUID}'
             - uuid: fbc49e7ad0274e4c97bc18f714d1042d
-              name: 'Hytale player signature energy state'
+              name: 'Hytale player UUID:{#UUID} signature energy state'
               type: DEPENDENT
               key: 'player.signatureenergy["{#PATHNAME}"]'
               delay: '0'
@@ -604,10 +674,10 @@ zabbix_export:
               master_item:
                 key: 'vfs.file.contents[{#PATHNAME},UTF-8]'
               tags:
-                - tag: UUID
+                - tag: Hytale
                   value: '{#UUID}'
             - uuid: fbfeef9c24fb4e92b14a213be3d74242
-              name: 'Hytale player stamina regen delay state'
+              name: 'Hytale player UUID:{#UUID} stamina regen delay state'
               type: DEPENDENT
               key: 'player.staminaregendelay["{#PATHNAME}"]'
               delay: '0'
@@ -619,10 +689,10 @@ zabbix_export:
               master_item:
                 key: 'vfs.file.contents[{#PATHNAME},UTF-8]'
               tags:
-                - tag: UUID
+                - tag: Hytale
                   value: '{#UUID}'
             - uuid: cfceba298d18478fab33d04fc0484fa3
-              name: 'Hytale player stamina state'
+              name: 'Hytale player UUID:{#UUID} stamina state'
               type: DEPENDENT
               key: 'player.stamina["{#PATHNAME}"]'
               delay: '0'
@@ -634,10 +704,10 @@ zabbix_export:
               master_item:
                 key: 'vfs.file.contents[{#PATHNAME},UTF-8]'
               tags:
-                - tag: UUID
+                - tag: Hytale
                   value: '{#UUID}'
             - uuid: cc36990924574998b7ce32393a2562a2
-              name: 'Hytale player world'
+              name: 'Hytale player UUID:{#UUID} world'
               type: DEPENDENT
               key: 'player.world["{#PATHNAME}"]'
               delay: '0'
@@ -650,7 +720,7 @@ zabbix_export:
               master_item:
                 key: 'vfs.file.contents[{#PATHNAME},UTF-8]'
               tags:
-                - tag: UUID
+                - tag: Hytale
                   value: '{#UUID}'
             - uuid: 5a7e4d21ca864a55a575b1ae2b7c3c6c
               name: hytale.player.raw
@@ -658,6 +728,85 @@ zabbix_export:
               key: 'vfs.file.contents[{#PATHNAME},UTF-8]'
               value_type: TEXT
               trends: '0'
+            - uuid: 1fb8b7720f0c4270bb0b09a3ee7beae0
+              name: 'Hytale player UUID:{#UUID} last seen'
+              type: ZABBIX_ACTIVE
+              key: 'vfs.file.time[{$PLAYER_JSON_PATH}Server/universe/players/{#UUID}.json,modify]'
+              trends: '0'
+              units: unixtime
+              tags:
+                - tag: Hytale
+                  value: '{#UUID}'
+          graph_prototypes:
+            - uuid: 7cb463d3b1d0409ca04540a11aa9086f
+              name: 'Player UUID: {#UUID} gliding state'
+              graph_items:
+                - color: 00FFFF
+                  calc_fnc: ALL
+                  item:
+                    host: Hytale
+                    key: 'player.gliding["{#PATHNAME}"]'
+            - uuid: 1add34022efa4e439f981bd21e2710bd
+              name: 'Player UUID: {#UUID} health'
+              ymax_type_1: FIXED
+              graph_items:
+                - color: FFFF00
+                  calc_fnc: ALL
+                  item:
+                    host: Hytale
+                    key: 'player.healthy["{#PATHNAME}"]'
+            - uuid: f5b745593747453e8f07acb1df02462c
+              name: 'Player UUID: {#UUID} magic charges state'
+              graph_items:
+                - color: 0D47A1
+                  calc_fnc: ALL
+                  item:
+                    host: Hytale
+                    key: 'player.magiccharges["{#PATHNAME}"]'
+            - uuid: b5f7a0d2e2334545bf3b3276e1f4f5f2
+              name: 'Player UUID: {#UUID} oxygen state'
+              graph_items:
+                - color: 4FC3F7
+                  calc_fnc: ALL
+                  item:
+                    host: Hytale
+                    key: 'player.oxygen["{#PATHNAME}"]'
+            - uuid: b3469f09ae5b4791827754e6e3c5ad27
+              name: 'Player UUID: {#UUID} player gamemode'
+              yaxismax: '3'
+              show_work_period: 'NO'
+              show_triggers: 'NO'
+              ymax_type_1: FIXED
+              graph_items:
+                - color: 1A7C11
+                  calc_fnc: MIN
+                  item:
+                    host: Hytale
+                    key: 'player.gamemode["{#PATHNAME}"]'
+            - uuid: 61f798f48bc64b77a058be2cb4de138b
+              name: 'Player UUID: {#UUID} signature energy state'
+              graph_items:
+                - color: FBC02D
+                  calc_fnc: ALL
+                  item:
+                    host: Hytale
+                    key: 'player.signatureenergy["{#PATHNAME}"]'
+            - uuid: 641573db7b534e8db72241c6781e1010
+              name: 'Player UUID: {#UUID} stamina regen delay state'
+              graph_items:
+                - color: 880E4F
+                  calc_fnc: ALL
+                  item:
+                    host: Hytale
+                    key: 'player.staminaregendelay["{#PATHNAME}"]'
+            - uuid: b136764a8b94498b8accae0e1c8e980d
+              name: 'Player UUID: {#UUID} stamina state'
+              graph_items:
+                - color: FF5722
+                  calc_fnc: ALL
+                  item:
+                    host: Hytale
+                    key: 'player.stamina["{#PATHNAME}"]'
           master_item:
             key: 'vfs.dir.get[{$PLAYER_JSON_PATH}Server/universe/players,^.+\.json$,,file,,0]'
           lld_macro_paths:
@@ -689,7 +838,7 @@ zabbix_export:
           delay: '0'
           item_prototypes:
             - uuid: 45a791336c484e629259c22a0a059171
-              name: 'Hytale player whitelisted'
+              name: 'Hytale player UUID:{#UUID} whitelisted'
               type: DEPENDENT
               key: 'player.whitelist["{#UUID}"]'
               delay: '0'
@@ -703,7 +852,7 @@ zabbix_export:
               master_item:
                 key: 'vfs.file.contents[{$PLAYER_JSON_PATH}Server/whitelist.json]'
               tags:
-                - tag: UUID
+                - tag: Hytale
                   value: '{#UUID}'
               trigger_prototypes:
                 - uuid: 6f17f27153944e0e92c76df099a9112a
@@ -722,6 +871,136 @@ zabbix_export:
       macros:
         - macro: '{$PLAYER_JSON_PATH}'
           value: /home/hytale/
+      dashboards:
+        - uuid: cadd1aeff599428da569a602b395774a
+          name: 'Hytale Player Overview'
+          auto_start: 'NO'
+          pages:
+            - widgets:
+                - type: item
+                  name: Name
+                  width: '36'
+                  fields:
+                    - type: ITEM
+                      name: itemid.0
+                      value:
+                        host: Hytale
+                        key: server.name
+                    - type: INTEGER
+                      name: show.0
+                      value: '2'
+                - type: graphprototype
+                  'y': '2'
+                  width: '36'
+                  height: '4'
+                  fields:
+                    - type: INTEGER
+                      name: columns
+                      value: '1'
+                    - type: GRAPH_PROTOTYPE
+                      name: graphid.0
+                      value:
+                        host: Hytale
+                        name: 'Player UUID: {#UUID} health'
+                    - type: STRING
+                      name: reference
+                      value: LQFKE
+                - type: graphprototype
+                  'y': '6'
+                  width: '36'
+                  height: '4'
+                  fields:
+                    - type: INTEGER
+                      name: columns
+                      value: '1'
+                    - type: GRAPH_PROTOTYPE
+                      name: graphid.0
+                      value:
+                        host: Hytale
+                        name: 'Player UUID: {#UUID} player gamemode'
+                    - type: STRING
+                      name: reference
+                      value: JFGIL
+                - type: graphprototype
+                  'y': '10'
+                  width: '36'
+                  height: '4'
+                  fields:
+                    - type: INTEGER
+                      name: columns
+                      value: '1'
+                    - type: GRAPH_PROTOTYPE
+                      name: graphid.0
+                      value:
+                        host: Hytale
+                        name: 'Player UUID: {#UUID} stamina state'
+                    - type: STRING
+                      name: reference
+                      value: CQGUZ
+                - type: item
+                  name: MOTD
+                  x: '36'
+                  width: '36'
+                  fields:
+                    - type: ITEM
+                      name: itemid.0
+                      value:
+                        host: Hytale
+                        key: server.motd
+                    - type: INTEGER
+                      name: show.0
+                      value: '2'
+                - type: graphprototype
+                  x: '36'
+                  'y': '2'
+                  width: '36'
+                  height: '4'
+                  fields:
+                    - type: INTEGER
+                      name: columns
+                      value: '1'
+                    - type: GRAPH_PROTOTYPE
+                      name: graphid.0
+                      value:
+                        host: Hytale
+                        name: 'Player UUID: {#UUID} oxygen state'
+                    - type: STRING
+                      name: reference
+                      value: YNQEQ
+                - type: graphprototype
+                  x: '36'
+                  'y': '6'
+                  width: '36'
+                  height: '4'
+                  fields:
+                    - type: INTEGER
+                      name: columns
+                      value: '1'
+                    - type: GRAPH_PROTOTYPE
+                      name: graphid.0
+                      value:
+                        host: Hytale
+                        name: 'Player UUID: {#UUID} magic charges state'
+                    - type: STRING
+                      name: reference
+                      value: WVVXF
+                - type: graphprototype
+                  x: '36'
+                  'y': '10'
+                  width: '36'
+                  height: '4'
+                  fields:
+                    - type: INTEGER
+                      name: columns
+                      value: '1'
+                    - type: GRAPH_PROTOTYPE
+                      name: graphid.0
+                      value:
+                        host: Hytale
+                        name: 'Player UUID: {#UUID} stamina regen delay state'
+                    - type: STRING
+                      name: reference
+                      value: CDGRG
       valuemaps:
         - uuid: 93ba4fa07370489985f62ddccfdc8c5b
           name: GameMode
