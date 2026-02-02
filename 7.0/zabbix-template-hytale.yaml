@@ -83,7 +83,6 @@ zabbix_export:
           name: player.raw
           type: ZABBIX_ACTIVE
           key: 'vfs.dir.get[{$PLAYER_JSON_PATH}Server/universe/players,^.+\.json$,,file,,0]'
-          history: '0'
           value_type: TEXT
           trends: '0'
         - uuid: fe56dd2183084e6db8a66c8aad5b83c2
@@ -240,6 +239,36 @@ zabbix_export:
           key: discover.player
           delay: '0'
           item_prototypes:
+            - uuid: 337d35e2390841de90da34c3e64c2de4
+              name: 'Hytale player UUID:{#UUID} online status'
+              type: DEPENDENT
+              key: 'hytale.player.online[{#UUID}]'
+              delay: '0'
+              trends: '0'
+              valuemap:
+                name: 'Player online'
+              preprocessing:
+                - type: JAVASCRIPT
+                  parameters:
+                    - |
+                      // value = mtime (unix timestamp)
+                      var threshold = 120;              // Sekunden
+                      var now = Math.floor(Date.now()/1000);
+                      return (now - Number(value) < threshold) ? 1 : 0;
+              master_item:
+                key: 'vfs.file.time[{$PLAYER_JSON_PATH}Server/universe/players/{#UUID}.json,modify]'
+              tags:
+                - tag: Hytale
+                  value: '{#UUID}'
+              trigger_prototypes:
+                - uuid: d2e15c7e827a4cd2a52983aaf385946a
+                  expression: 'last(/Hytale/hytale.player.online[{#UUID}])=0'
+                  name: 'Player {#UUID} is now offline'
+                  priority: WARNING
+                - uuid: 2e4be7954dbb47b38f718abee1a13ffd
+                  expression: 'last(/Hytale/hytale.player.online[{#UUID}])=1'
+                  name: 'Player {#UUID} is now online'
+                  priority: WARNING
             - uuid: 91eec0698bf743619779901a30276812
               name: 'Hytale player UUID:{#UUID} ammo state'
               type: DEPENDENT
@@ -349,7 +378,7 @@ zabbix_export:
                 - tag: Hytale
                   value: '{#UUID}'
             - uuid: d7e62bae56ec4392bc01a97621ebe524
-              name: 'Hytale player UUID:{#UUID} gamemode'
+              name: 'Hytale player UUID:{#UUID} gamemode {#NAME}'
               type: DEPENDENT
               key: 'player.gamemode["{#PATHNAME}"]'
               delay: '0'
@@ -378,9 +407,9 @@ zabbix_export:
                 - tag: Hytale
                   value: '{#UUID}'
               trigger_prototypes:
-                - uuid: 2e4be7954dbb47b38f718abee1a13ffd
+                - uuid: 575819351486444bbf176838f17fcec5
                   expression: 'last(/Hytale/player.gamemode["{#PATHNAME}"])=3'
-                  name: 'Player {#UUID} is in Creative mode'
+                  name: 'Player {#UUID} is in creative mode'
                   priority: WARNING
             - uuid: dd21b2d5514f4981bde3a16444b4366a
               name: 'Hytale player UUID:{#UUID} gliding state'
@@ -937,6 +966,25 @@ zabbix_export:
                     - type: STRING
                       name: reference
                       value: CQGUZ
+                - type: graphprototype
+                  'y': '14'
+                  width: '36'
+                  height: '4'
+                  fields:
+                    - type: INTEGER
+                      name: columns
+                      value: '1'
+                    - type: ITEM_PROTOTYPE
+                      name: itemid.0
+                      value:
+                        host: Hytale
+                        key: 'vfs.file.time[{$PLAYER_JSON_PATH}Server/universe/players/{#UUID}.json,modify]'
+                    - type: STRING
+                      name: reference
+                      value: XYVNE
+                    - type: INTEGER
+                      name: source_type
+                      value: '3'
                 - type: item
                   name: MOTD
                   x: '36'
@@ -1011,3 +1059,10 @@ zabbix_export:
               newvalue: Exploration
             - value: '3'
               newvalue: Creative
+        - uuid: e004693ceafe45498347bfe6ad3b93f2
+          name: 'Player online'
+          mappings:
+            - value: '1'
+              newvalue: online
+            - value: '0'
+              newvalue: offline
