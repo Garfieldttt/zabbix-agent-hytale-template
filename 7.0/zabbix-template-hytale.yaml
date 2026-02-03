@@ -252,7 +252,7 @@ zabbix_export:
                   parameters:
                     - |
                       // value = mtime (unix timestamp)
-                      var threshold = 120;              // Sekunden
+                      var threshold = 60;              // Sekunden
                       var now = Math.floor(Date.now()/1000);
                       return (now - Number(value) < threshold) ? 1 : 0;
               master_item:
