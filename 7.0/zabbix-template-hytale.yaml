@@ -16,6 +16,17 @@ zabbix_export:
       groups:
         - name: Templates
       items:
+        - uuid: 62ff7e39ecf14e2faf7818f5c2e4aef1
+          name: 'Hytale server status'
+          type: ZABBIX_ACTIVE
+          key: 'net.udp.listen[{$UDP_PORT}]'
+          valuemap:
+            name: 'Hytale server status'
+          triggers:
+            - uuid: f6116eb2e6b1435e8cec2bdc52f874d7
+              expression: 'min(/Hytale/net.udp.listen[{$UDP_PORT}],300)=0'
+              name: 'Hytale server is offline'
+              priority: HIGH
         - uuid: 09c14c7d41d4461c9cb197291627cb5c
           name: 'Sever max players'
           type: DEPENDENT
@@ -900,6 +911,10 @@ zabbix_export:
       macros:
         - macro: '{$PLAYER_JSON_PATH}'
           value: /home/hytale/
+          description: 'Absolute path to the Hytale server directory containing player and runtime JSON files.'
+        - macro: '{$UDP_PORT}'
+          value: '5520'
+          description: 'UDP port on which the Hytale server listens for game traffic.'
       dashboards:
         - uuid: cadd1aeff599428da569a602b395774a
           name: 'Hytale Player Overview'
@@ -1059,6 +1074,13 @@ zabbix_export:
               newvalue: Exploration
             - value: '3'
               newvalue: Creative
+        - uuid: 0371a2b8ca7b472481beaa26207ff53b
+          name: 'Hytale server status'
+          mappings:
+            - value: '1'
+              newvalue: online
+            - value: '0'
+              newvalue: offline
         - uuid: e004693ceafe45498347bfe6ad3b93f2
           name: 'Player online'
           mappings:
