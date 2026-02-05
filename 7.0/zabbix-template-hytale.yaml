@@ -16,6 +16,12 @@ zabbix_export:
       groups:
         - name: Templates
       items:
+        - uuid: acea6e2a196747d69e053329324b7109
+          name: 'Hytale players online'
+          type: CALCULATED
+          key: hytale.players.online.count
+          delay: 10s
+          params: 'sum(last_foreach(//hytale.player.online[*]))'
         - uuid: 62ff7e39ecf14e2faf7818f5c2e4aef1
           name: 'Hytale server status'
           type: ZABBIX_ACTIVE
@@ -275,11 +281,11 @@ zabbix_export:
                 - uuid: d2e15c7e827a4cd2a52983aaf385946a
                   expression: 'last(/Hytale/hytale.player.online[{#UUID}])=0'
                   name: 'Player {#UUID} is now offline'
-                  priority: WARNING
+                  priority: INFO
                 - uuid: 2e4be7954dbb47b38f718abee1a13ffd
                   expression: 'last(/Hytale/hytale.player.online[{#UUID}])=1'
                   name: 'Player {#UUID} is now online'
-                  priority: WARNING
+                  priority: INFO
             - uuid: 91eec0698bf743619779901a30276812
               name: 'Hytale player UUID:{#UUID} ammo state'
               type: DEPENDENT
@@ -922,7 +928,20 @@ zabbix_export:
           pages:
             - widgets:
                 - type: item
+                  name: MOTD
+                  width: '72'
+                  fields:
+                    - type: ITEM
+                      name: itemid.0
+                      value:
+                        host: Hytale
+                        key: server.motd
+                    - type: INTEGER
+                      name: show.0
+                      value: '2'
+                - type: item
                   name: Name
+                  'y': '2'
                   width: '36'
                   fields:
                     - type: ITEM
@@ -934,7 +953,7 @@ zabbix_export:
                       name: show.0
                       value: '2'
                 - type: graphprototype
-                  'y': '2'
+                  'y': '4'
                   width: '36'
                   height: '4'
                   fields:
@@ -950,7 +969,7 @@ zabbix_export:
                       name: reference
                       value: LQFKE
                 - type: graphprototype
-                  'y': '6'
+                  'y': '8'
                   width: '36'
                   height: '4'
                   fields:
@@ -966,7 +985,7 @@ zabbix_export:
                       name: reference
                       value: JFGIL
                 - type: graphprototype
-                  'y': '10'
+                  'y': '12'
                   width: '36'
                   height: '4'
                   fields:
@@ -982,7 +1001,7 @@ zabbix_export:
                       name: reference
                       value: CQGUZ
                 - type: graphprototype
-                  'y': '14'
+                  'y': '16'
                   width: '36'
                   height: '4'
                   fields:
@@ -1000,22 +1019,26 @@ zabbix_export:
                     - type: INTEGER
                       name: source_type
                       value: '3'
-                - type: item
-                  name: MOTD
+                - type: graph
                   x: '36'
+                  'y': '2'
                   width: '36'
+                  height: '4'
                   fields:
                     - type: ITEM
                       name: itemid.0
                       value:
                         host: Hytale
-                        key: server.motd
+                        key: hytale.players.online.count
+                    - type: STRING
+                      name: reference
+                      value: SLXKD
                     - type: INTEGER
-                      name: show.0
-                      value: '2'
+                      name: source_type
+                      value: '1'
                 - type: graphprototype
                   x: '36'
-                  'y': '2'
+                  'y': '6'
                   width: '36'
                   height: '4'
                   fields:
@@ -1032,7 +1055,7 @@ zabbix_export:
                       value: YNQEQ
                 - type: graphprototype
                   x: '36'
-                  'y': '6'
+                  'y': '10'
                   width: '36'
                   height: '4'
                   fields:
@@ -1049,7 +1072,7 @@ zabbix_export:
                       value: WVVXF
                 - type: graphprototype
                   x: '36'
-                  'y': '10'
+                  'y': '14'
                   width: '36'
                   height: '4'
                   fields:
