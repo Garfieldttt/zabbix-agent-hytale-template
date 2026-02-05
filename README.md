@@ -8,6 +8,8 @@ Zabbix template for monitoring a **Hytale server on Linux** using **Zabbix Agent
 
 Compatible with **Zabbix 7.0 and newer**.
 
+This template can be used together with the **[Zabbix HTTP Hytale template](https://github.com/Garfieldttt/zabbix-agent-hytale-http-template)** to extend monitoring capabilities.
+
 ---
 
 ## Requirements
