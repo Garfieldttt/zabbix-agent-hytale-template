@@ -934,7 +934,20 @@ zabbix_export:
           pages:
             - widgets:
                 - type: item
+                  name: Name
+                  width: '72'
+                  fields:
+                    - type: ITEM
+                      name: itemid.0
+                      value:
+                        host: Hytale
+                        key: server.name
+                    - type: INTEGER
+                      name: show.0
+                      value: '2'
+                - type: item
                   name: MOTD
+                  'y': '2'
                   width: '72'
                   fields:
                     - type: ITEM
@@ -942,19 +955,6 @@ zabbix_export:
                       value:
                         host: Hytale
                         key: server.motd
-                    - type: INTEGER
-                      name: show.0
-                      value: '2'
-                - type: item
-                  name: Name
-                  'y': '2'
-                  width: '36'
-                  fields:
-                    - type: ITEM
-                      name: itemid.0
-                      value:
-                        host: Hytale
-                        key: server.name
                     - type: INTEGER
                       name: show.0
                       value: '2'
@@ -1027,7 +1027,7 @@ zabbix_export:
                       value: '3'
                 - type: graph
                   x: '36'
-                  'y': '2'
+                  'y': '4'
                   width: '36'
                   height: '4'
                   fields:
@@ -1044,7 +1044,7 @@ zabbix_export:
                       value: '1'
                 - type: graphprototype
                   x: '36'
-                  'y': '6'
+                  'y': '8'
                   width: '36'
                   height: '4'
                   fields:
@@ -1061,7 +1061,7 @@ zabbix_export:
                       value: YNQEQ
                 - type: graphprototype
                   x: '36'
-                  'y': '10'
+                  'y': '12'
                   width: '36'
                   height: '4'
                   fields:
@@ -1078,7 +1078,7 @@ zabbix_export:
                       value: WVVXF
                 - type: graphprototype
                   x: '36'
-                  'y': '14'
+                  'y': '16'
                   width: '36'
                   height: '4'
                   fields:
