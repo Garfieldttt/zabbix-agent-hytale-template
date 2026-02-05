@@ -28,6 +28,12 @@ zabbix_export:
           key: 'net.udp.listen[{$UDP_PORT}]'
           valuemap:
             name: 'Hytale server status'
+          preprocessing:
+            - type: CHECK_NOT_SUPPORTED
+              parameters:
+                - '-1'
+              error_handler: CUSTOM_VALUE
+              error_handler_params: '0'
           triggers:
             - uuid: f6116eb2e6b1435e8cec2bdc52f874d7
               expression: 'min(/Hytale/net.udp.listen[{$UDP_PORT}],300)=0'
